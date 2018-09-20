@@ -1,0 +1,65 @@
+// build versions defined
+def buildVersions = [:]
+buildVersions.minSdk = 17
+buildVersions.targetSdk = 27
+buildVersions.compileSdk = 27
+buildVersions.buildTools = "27.0.3"
+buildVersions.sourceCompatibility = JavaVersion.VERSION_1_8
+buildVersions.targetCompatibility = JavaVersion.VERSION_1_8
+ext.buildVersions = buildVersions
+/**
+ * Shared file between builds so that they can all use the same dependencies and
+ * maven repositories.
+ **/
+ext.deps = [:]
+// dependencies versions defined
+def versions = [:]
+versions.androidGradlePlugin = "3.1.4"
+versions.kotlin = "1.2.70"
+versions.ktx = "0.3"
+versions.coroutines = "0.22.5"
+versions.anko = "0.10.5"
+versions.supportLibrary = "27.1.1"
+versions.constraintLayout = "1.1.0"
+versions.glide = "4.7.1"
+// dependencies defined
+def deps = [:]
+// Gradle
+def gradle = [:]
+gradle.android = "com.android.tools.build:gradle:$versions.androidGradlePlugin"
+gradle.kotlin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+deps.gradle = gradle
+// Kotlin
+def kotlin = [:]
+kotlin.stdLib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
+kotlin.ktx = "androidx.corde:corde-ktx:$versions.ktx"
+kotlin.coroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+kotlin.coroutinesAndroid = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"
+deps.kotlin = kotlin
+// Anko
+def anko = [:]
+anko.commons = "org.jetbrains.anko:anko-commons:$versions.ankoVersion"
+anko.coroutines = "org.jetbrains.anko:anko-coroutines:$versions.ankoVersion"
+deps.anko = anko
+// Android support
+def androidSupport = [:]
+androidSupport.appCompat = "com.android.support:appcompat-v7:$versions.supportLibrary"
+androidSupport.supportV4 = "com.android.support:support-v4:$versions.supportLibrary"
+androidSupport.constraint =
+    "com.android.support.constraint:constraint-layout:$versions.constraintLayout"
+deps.androidSupport = androidSupport
+// Glide
+def glide = [:]
+glide.core = "com.github.bumptech.glide:glide:$versions.glide"
+glide.compiler = "com.github.bumptech.glide:compiler:$versions.glide"
+deps.glide = glide
+// Assign into ext
+ext.deps = deps
+
+static def addRepos(RepositoryHandler handler) {
+  handler.google()
+  handler.jcenter()
+  handler.mavenCentral()
+}
+
+ext.addRepos = this.&addRepos

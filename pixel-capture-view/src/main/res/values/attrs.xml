@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <declare-styleable name="PixelCaptureView">
+    <attr name="resolution_ratio">
+      <enum name="r1x1" value="0"/>
+      <enum name="r4x3" value="1"/>
+      <enum name="r16x9" value="2"/>
+    </attr>
+
+    <attr format="color" name="borderLineColor"/>
+    <attr format="dimension" name="borderLineThickness"/>
+    <attr format="dimension" name="cornerPadding"/>
+    <attr format="color" name="cornerLineColor"/>
+    <attr format="dimension" name="cornerLineThickness"/>
+    <attr format="dimension" name="cornerWidth"/>
+    <attr format="dimension" name="cornerHeight"/>
+    <attr format="integer" name="grid_cells"/>
+  </declare-styleable>
+
+</resources>
