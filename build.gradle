@@ -11,10 +11,11 @@ buildscript {
     }
 }
 
-allprojects {
-    addRepos(repositories)
+plugins {
+    id "com.github.dcendents.android-maven" version "2.0"
+    id "com.jfrog.bintray" version "1.8.3"
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+allprojects {
+    addRepos(repositories)
 }

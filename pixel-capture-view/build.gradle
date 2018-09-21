@@ -2,13 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+version = "1.0.0"
 android {
   compileSdkVersion buildVersions.compileSdk
   defaultConfig {
     minSdkVersion buildVersions.minSdk
     targetSdkVersion buildVersions.targetSdk
     versionCode 1
-    versionName "1.0"
+    versionName version
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
   buildTypes {
