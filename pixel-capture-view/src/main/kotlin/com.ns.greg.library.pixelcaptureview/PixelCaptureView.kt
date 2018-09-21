@@ -8,10 +8,13 @@ import android.graphics.Paint
 import android.graphics.Paint.Style
 import android.graphics.Paint.Style.STROKE
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.support.v4.view.GestureDetectorCompat
 import android.util.AttributeSet
+import android.util.Log
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
+import android.view.ViewGroup.LayoutParams
 import android.widget.ImageView
 import android.widget.ImageView.ScaleType.FIT_XY
 import com.ns.greg.library.pixelcaptureview.ResolutionRatio.FOUR_X_THREE
@@ -38,8 +41,10 @@ class PixelCaptureView @JvmOverloads constructor(
   private val captureWindow: CaptureWindow
   private val borderPaint = Paint()
   private val cornerPaint = Paint()
+  private var waitLayoutThread: Thread? = null
   private var isMoving = false
   private var listener: CaptureListener? = null
+  private var captured = true
 
   init {
     captureOptions = if (attrs != null) {
@@ -88,19 +93,34 @@ class PixelCaptureView @JvmOverloads constructor(
     cornerPaint.strokeWidth = captureOptions.cornerLineThickness
     cornerPaint.style = STROKE
     cornerPaint.isAntiAlias = true
-    /* scale type */
+    /* always scale as FIT_XY */
     scaleType = FIT_XY
   }
 
   override fun setScaleType(scaleType: ScaleType?) {
     scaleType?.run {
       if (this != FIT_XY) {
-        /* always set to FIT_XY */
         return
       }
     }
 
     super.setScaleType(scaleType)
+  }
+
+  override fun setImageResource(resId: Int) {
+    if (isLayoutRequested) {
+      setImageResourceAsync(resId)
+    } else {
+      super.setImageResource(resId)
+    }
+  }
+
+  override fun setImageDrawable(drawable: Drawable?) {
+    if (isLayoutRequested) {
+      setImageDrawableAsync(drawable)
+    } else {
+      super.setImageDrawable(drawable)
+    }
   }
 
   override fun onLayout(
@@ -111,21 +131,36 @@ class PixelCaptureView @JvmOverloads constructor(
     bottom: Int
   ) {
     super.onLayout(changed, left, top, right, bottom)
-    if (changed) {
-      /* FIXME: how to determine the ratio layout */
-      val width = right - left
-      val height = bottom - top
-      initRatioLayout(width)
-      if ((width > 0) and (height > 0)) {
-        captureWindow.initOverlayView(
-            left.toFloat(), top.toFloat(), right.toFloat(),
-            bottom.toFloat()
+    println("PixelCaptureView.onLayout")
+    val width = right - left
+    val height = bottom - top
+    if (layoutParams.width == LayoutParams.WRAP_CONTENT) {
+      if (drawable != null) {
+        Log.i(
+            javaClass.simpleName,
+            "PixelCaptureView can't resolve layout_width with LayoutParams.WRAP_CONTENT. " +
+                "The layout size won't adjust to the resolution ratio which you assigned, " +
+                "use LayoutParams.MATCH_PARENT or fixed dimension to layout_width."
         )
-        if (!captureWindow.hasBorder()) {
-          val cx = (width / 2).toFloat()
-          val cy = (height / 2).toFloat()
-          captureWindow.initBorder(cx / 2, cy / 2, cx, cy)
-        }
+      }
+    } else {
+      if (changed) {
+        /* request layout by resolution ratio */
+        initRatioLayout(width)
+      }
+    }
+
+    if ((width > 0) and (height > 0)) {
+      /* init overlay */
+      captureWindow.initOverlay(
+          left.toFloat(), top.toFloat(), right.toFloat(),
+          bottom.toFloat()
+      )
+      /* init border if has no one */
+      if (!captureWindow.hasBorder()) {
+        val cx = (width / 2).toFloat()
+        val cy = (height / 2).toFloat()
+        captureWindow.initBorder(cx / 2, cy / 2, cx, cy)
       }
     }
   }
@@ -141,7 +176,7 @@ class PixelCaptureView @JvmOverloads constructor(
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onTouchEvent(event: MotionEvent?): Boolean {
-    if (!isEnabled or !captureWindow.hasOverlayView()) {
+    if (!isEnabled or !captureWindow.hasOverlay()) {
       return false
     }
 
@@ -175,7 +210,16 @@ class PixelCaptureView @JvmOverloads constructor(
     this.listener = listener
   }
 
+  fun setCaptured(captured: Boolean) {
+    this.captured = captured
+    invalidate()
+  }
+
   fun capture() {
+    if (!captured) {
+      return
+    }
+
     listener?.run {
       val current = captureWindow.getDrawingRectf()
       val rect = Rect(
@@ -190,10 +234,18 @@ class PixelCaptureView @JvmOverloads constructor(
    *-------------------------------*/
 
   private fun drawBorder(canvas: Canvas) {
+    if (!captured) {
+      return
+    }
+
     canvas.drawRect(captureWindow.getDrawingRectf(), borderPaint)
   }
 
   private fun drawCorners(canvas: Canvas) {
+    if (!captured) {
+      return
+    }
+
     val recft = captureWindow.getDrawingRectf()
     val padding = captureWindow.cornerPadding
     val width = captureWindow.cornerWidth
@@ -222,7 +274,7 @@ class PixelCaptureView @JvmOverloads constructor(
 
   private fun drawGridLines(canvas: Canvas) {
     val cells = captureOptions.gridCells
-    if (!isMoving || cells == 0) {
+    if (!captured or !isMoving or (cells == 0)) {
       /* return while not moving */
       return
     }
@@ -239,10 +291,48 @@ class PixelCaptureView @JvmOverloads constructor(
   }
 
   private fun initRatioLayout(width: Int) {
+    println("PixelCaptureView.initRatioLayout")
+    val params = layoutParams
     val height =
       ResolutionUtils.getRatioHeight(width, captureOptions.resolutionRatio)
-    layoutParams.height = height
-    requestLayout()
+    params.height = height
+    layoutParams = params
+  }
+
+  private fun setImageResourceAsync(resId: Int) {
+    waitLayoutThread?.interrupt()
+    waitLayoutThread = Thread {
+      while (isLayoutRequested) {
+        try {
+          Thread.sleep(10)
+        } catch (e: InterruptedException) {
+        }
+      }
+
+      post {
+        setImageResource(resId)
+      }
+    }.also {
+      it.start()
+    }
+  }
+
+  private fun setImageDrawableAsync(drawable: Drawable?) {
+    waitLayoutThread?.interrupt()
+    waitLayoutThread = Thread {
+      while (isLayoutRequested) {
+        try {
+          Thread.sleep(10)
+        } catch (e: InterruptedException) {
+        }
+      }
+
+      post {
+        setImageDrawable(drawable)
+      }
+    }.also {
+      it.start()
+    }
   }
 
   private class SimpleGestureListener(reference: PixelCaptureView) : SimpleOnGestureListener() {
