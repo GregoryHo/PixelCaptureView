@@ -152,15 +152,13 @@ class PixelCaptureView @JvmOverloads constructor(
 
     if ((width > 0) and (height > 0)) {
       /* init overlay */
-      captureWindow.initOverlay(
+      captureWindow.layoutOverlay(
           left.toFloat(), top.toFloat(), right.toFloat(),
           bottom.toFloat()
       )
       /* init border if has no one */
       if (!captureWindow.hasBorder()) {
-        val cx = (width / 2).toFloat()
-        val cy = (height / 2).toFloat()
-        captureWindow.initBorder(cx / 2, cy / 2, cx, cy)
+        borderCenterCrop()
       }
     }
   }
@@ -197,13 +195,32 @@ class PixelCaptureView @JvmOverloads constructor(
    * Public functions
    *-------------------------------*/
 
-  fun setBorder(
+  fun borderFitCustom(
     x: Int,
     y: Int,
     width: Int,
     height: Int
   ) {
-    captureWindow.initBorder(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+    captureWindow.applyBorder(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+    invalidate()
+  }
+
+  fun borderCenterCrop() {
+    with(captureWindow) {
+      if (hasOverlay()) {
+        captureWindow.centerCrop()
+        invalidate()
+      }
+    }
+  }
+
+  fun borderFitXy() {
+    with(captureWindow) {
+      if (hasOverlay()) {
+        captureWindow.fitXy()
+        invalidate()
+      }
+    }
   }
 
   fun setCaptureListener(listener: CaptureListener) {
