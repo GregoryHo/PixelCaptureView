@@ -16,14 +16,14 @@ internal class CaptureWindow(
   val cornerHeight: Float
 ) {
 
-  /* only changed when invoked initOverlay */
+  /* only changed when invoked layoutOverlay */
   private val minBorder = Border(RectF())
-  /* only changed when invoked initOverlay */
+  /* only changed when invoked layoutOverlay */
   private val maxBorder = Border(RectF())
   private val currentBorder = Border(RectF())
   private val radius = (Math.max(cornerWidth, cornerHeight) * 3) + cornerPadding
 
-  fun initBorder(
+  fun applyBorder(
     left: Float,
     top: Float,
     width: Float,
@@ -36,7 +36,7 @@ internal class CaptureWindow(
     return currentBorder.hasLayout()
   }
 
-  fun initOverlay(
+  fun layoutOverlay(
     left: Float,
     top: Float,
     right: Float,
@@ -50,6 +50,20 @@ internal class CaptureWindow(
 
   fun hasOverlay(): Boolean {
     return minBorder.hasLayout() and maxBorder.hasLayout()
+  }
+
+  fun centerCrop() {
+    with(maxBorder.getRectf()) {
+      val cx = width() / 2
+      val cy = height() / 2
+      applyBorder(cx / 2, cy / 2, cx, cy)
+    }
+  }
+
+  fun fitXy() {
+    with(maxBorder.getRectf()) {
+      applyBorder(0f, 0f, right, bottom)
+    }
   }
 
   fun getDrawingRectf(): RectF {
