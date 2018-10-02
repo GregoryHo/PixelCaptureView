@@ -14,7 +14,7 @@ ext.buildVersions = buildVersions
 ext.deps = [:]
 // dependencies versions defined
 def versions = [:]
-versions.androidGradlePlugin = "3.1.4"
+versions.androidGradlePlugin = "3.2.0"
 versions.kotlin = "1.2.70"
 versions.dokka = "0.9.17"
 versions.ktx = "0.3"
