@@ -23,7 +23,7 @@ class DemoActivity : AppCompatActivity() {
     setContentView(R.layout.activity_demo)
     pixelCaptureView = findViewById(R.id.test_civ)
     // set custom border size
-    //pixelCaptureView.setBorder(360, 200, 720, 400)
+    //pixelCaptureView.borderFitCustom(360, 200, 720, 400)
     pixelCaptureView.setCaptureListener(object : CaptureListener {
       override fun onCapture(
         imageWidth: Int,
@@ -44,6 +44,12 @@ class DemoActivity : AppCompatActivity() {
     findViewById<View>(R.id.enabled_btn).setOnClickListener {
       enabled = !enabled
       pixelCaptureView.setCaptured(enabled)
+    }
+    findViewById<View>(R.id.center_crop_btn).setOnClickListener {
+      pixelCaptureView.borderCenterCrop()
+    }
+    findViewById<View>(R.id.fit_xy_btn).setOnClickListener {
+      pixelCaptureView.borderFitXy()
     }
   }
 }
