@@ -131,7 +131,6 @@ class PixelCaptureView @JvmOverloads constructor(
     bottom: Int
   ) {
     super.onLayout(changed, left, top, right, bottom)
-    println("PixelCaptureView.onLayout")
     val width = right - left
     val height = bottom - top
     if (layoutParams.width == LayoutParams.WRAP_CONTENT) {
@@ -308,7 +307,6 @@ class PixelCaptureView @JvmOverloads constructor(
   }
 
   private fun initRatioLayout(width: Int) {
-    println("PixelCaptureView.initRatioLayout")
     val params = layoutParams
     val height =
       ResolutionUtils.getRatioHeight(width, captureOptions.resolutionRatio)
