@@ -41,7 +41,8 @@ class PixelCaptureView @JvmOverloads constructor(
   private val captureWindow: CaptureWindow
   private val borderPaint = Paint()
   private val cornerPaint = Paint()
-  private var waitLayoutThread: Thread? = null
+  private var setBorderThread: Thread? = null
+  private var setResourceThread: Thread? = null
   private var isMoving = false
   private var listener: CaptureListener? = null
   private var captured = true
@@ -155,6 +156,7 @@ class PixelCaptureView @JvmOverloads constructor(
           left.toFloat(), top.toFloat(), right.toFloat(),
           bottom.toFloat()
       )
+      println("PixelCaptureView.onLayout")
       /* init border if has no one */
       if (!captureWindow.hasBorder()) {
         borderCenterCrop()
@@ -200,24 +202,89 @@ class PixelCaptureView @JvmOverloads constructor(
     width: Int,
     height: Int
   ) {
-    captureWindow.applyBorder(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
-    invalidate()
+    synchronized(this) {
+      with(captureWindow) {
+        if (hasOverlay()) {
+          applyBorder(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+          post {
+            invalidate()
+          }
+        } else {
+          setBorderThread?.interrupt()
+          setBorderThread = Thread {
+            while (!hasOverlay()) {
+              try {
+                Thread.sleep(10L)
+              } catch (e: InterruptedException) {
+              }
+            }
+
+            applyBorder(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+            post {
+              invalidate()
+            }
+          }.also {
+            it.start()
+          }
+        }
+      }
+    }
   }
 
   fun borderCenterCrop() {
-    with(captureWindow) {
-      if (hasOverlay()) {
-        captureWindow.centerCrop()
-        invalidate()
+    synchronized(this) {
+      with(captureWindow) {
+        if (hasOverlay()) {
+          centerCrop()
+          post {
+            invalidate()
+          }
+        } else {
+          setBorderThread?.interrupt()
+          setBorderThread = Thread {
+            while (!hasOverlay()) {
+              try {
+                Thread.sleep(10L)
+              } catch (e: InterruptedException) {
+              }
+            }
+
+            centerCrop()
+            post {
+              invalidate()
+            }
+          }.also {
+            it.start()
+          }
+        }
       }
     }
   }
 
   fun borderFitXy() {
-    with(captureWindow) {
-      if (hasOverlay()) {
-        captureWindow.fitXy()
-        invalidate()
+    synchronized(this) {
+      with(captureWindow) {
+        if (hasOverlay()) {
+          fitXy()
+          invalidate()
+        } else {
+          setBorderThread?.interrupt()
+          setBorderThread = Thread {
+            while (!hasOverlay()) {
+              try {
+                Thread.sleep(10L)
+              } catch (e: InterruptedException) {
+              }
+
+              fitXy()
+              post {
+                invalidate()
+              }
+            }
+          }.also {
+            it.start()
+          }
+        }
       }
     }
   }
@@ -315,8 +382,8 @@ class PixelCaptureView @JvmOverloads constructor(
   }
 
   private fun setImageResourceAsync(resId: Int) {
-    waitLayoutThread?.interrupt()
-    waitLayoutThread = Thread {
+    setResourceThread?.interrupt()
+    setResourceThread = Thread {
       while (isLayoutRequested) {
         try {
           Thread.sleep(10)
@@ -333,11 +400,11 @@ class PixelCaptureView @JvmOverloads constructor(
   }
 
   private fun setImageDrawableAsync(drawable: Drawable?) {
-    waitLayoutThread?.interrupt()
-    waitLayoutThread = Thread {
+    setResourceThread?.interrupt()
+    setResourceThread = Thread {
       while (isLayoutRequested) {
         try {
-          Thread.sleep(10)
+          Thread.sleep(10L)
         } catch (e: InterruptedException) {
         }
       }

@@ -29,7 +29,17 @@ internal class CaptureWindow(
     width: Float,
     height: Float
   ) {
-    currentBorder.layout(left, top, left + width, top + height)
+    with(maxBorder) {
+      if (hasLayout()) {
+        with(getRectf()) {
+          val l = if (left < this.left) this.left else left
+          val t = if (top < this.top) this.top else top
+          val w = if (width < this.width()) width else this.width()
+          val h = if (height < this.height()) height else this.height()
+          currentBorder.layout(l, t, l + w, t + h)
+        }
+      }
+    }
   }
 
   fun hasBorder(): Boolean {
@@ -44,7 +54,7 @@ internal class CaptureWindow(
   ) {
     val width = right - left
     val height = bottom - top
-    minBorder.layout(0f, 0f, width * 0.2f, height * 0.2f)
+    minBorder.layout(0f, 0f, width * 0.4f, height * 0.4f)
     maxBorder.layout(0f, 0f, width, height)
   }
 
