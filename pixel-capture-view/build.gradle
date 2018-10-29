@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-version = "1.0.3"
+version = "1.0.4"
 android {
   compileSdkVersion buildVersions.compileSdk
   defaultConfig {
