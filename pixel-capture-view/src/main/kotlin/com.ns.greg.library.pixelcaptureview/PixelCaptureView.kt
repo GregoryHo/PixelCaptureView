@@ -300,6 +300,10 @@ class PixelCaptureView @JvmOverloads constructor(
     invalidate()
   }
 
+  fun isCaptured(): Boolean {
+    return captured
+  }
+
   fun capture() {
     if (!captured) {
       return
