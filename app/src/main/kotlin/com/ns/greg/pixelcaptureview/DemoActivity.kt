@@ -6,6 +6,8 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import android.view.ViewTreeObserver
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import com.ns.greg.library.pixelcaptureview.CaptureListener
 import com.ns.greg.library.pixelcaptureview.PixelCaptureView
 
@@ -22,8 +24,6 @@ class DemoActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_demo)
     pixelCaptureView = findViewById(R.id.test_civ)
-    // set custom border size
-    //pixelCaptureView.borderFitCustom(360, 200, 720, 400)
     pixelCaptureView.setCaptureListener(object : CaptureListener {
       override fun onCapture(
         imageWidth: Int,
@@ -51,5 +51,13 @@ class DemoActivity : AppCompatActivity() {
     findViewById<View>(R.id.fit_xy_btn).setOnClickListener {
       pixelCaptureView.borderFitXy()
     }
+    // set custom border size
+    pixelCaptureView.viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+      override fun onGlobalLayout() {
+        pixelCaptureView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        /* if custom border is large too large, will just fit source xy */
+        pixelCaptureView.borderFitCustom(0, 0, 2000, 2000)
+      }
+    })
   }
 }
