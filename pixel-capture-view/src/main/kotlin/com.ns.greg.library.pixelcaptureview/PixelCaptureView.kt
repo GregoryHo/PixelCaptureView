@@ -166,10 +166,12 @@ class PixelCaptureView @JvmOverloads constructor(
 
   override fun onDraw(canvas: Canvas?) {
     super.onDraw(canvas)
-    canvas?.run {
-      drawBorder(this)
-      drawCorners(this)
-      drawGridLines(this)
+    resources?.run {
+      canvas?.also { c ->
+        drawCorners(c)
+        drawGridLines(c)
+        drawBorder(c)
+      }
     }
   }
 
