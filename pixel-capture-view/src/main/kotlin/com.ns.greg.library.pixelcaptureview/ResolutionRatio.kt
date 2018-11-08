@@ -4,11 +4,15 @@ package com.ns.greg.library.pixelcaptureview
  * @author gregho
  * @since 2018/9/19
  */
-enum class ResolutionRatio(internal val value: Int) {
+enum class ResolutionRatio(
+  internal val value: Int,
+  private val widthRatio: Float,
+  private val heightRatio: Float
+) {
 
-  ONE_X_ONE(0),
-  FOUR_X_THREE(1),
-  SIXTEEN_X_NINE(2);
+  ONE_X_ONE(0, 1f, 1f),
+  FOUR_X_THREE(1, 4f, 3f),
+  SIXTEEN_X_NINE(2, 16f, 9f);
 
   override fun toString(): String {
     return when (value) {
@@ -17,6 +21,12 @@ enum class ResolutionRatio(internal val value: Int) {
       2 -> "Resolution 16:9"
       else -> "Resolution unknown"
     }
+  }
+
+  fun getHeight(
+    width: Float
+  ): Int {
+    return (width / widthRatio * heightRatio).toInt()
   }
 
   companion object {

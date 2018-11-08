@@ -21,7 +21,6 @@ import com.ns.greg.library.pixelcaptureview.ResolutionRatio.FOUR_X_THREE
 import com.ns.greg.library.pixelcaptureview.internal.CaptureOptions
 import com.ns.greg.library.pixelcaptureview.internal.CaptureWindow
 import com.ns.greg.library.pixelcaptureview.internal.Corner
-import com.ns.greg.library.pixelcaptureview.internal.ResolutionUtils
 import java.lang.ref.WeakReference
 
 /**
@@ -156,7 +155,6 @@ class PixelCaptureView @JvmOverloads constructor(
           left.toFloat(), top.toFloat(), right.toFloat(),
           bottom.toFloat()
       )
-      println("PixelCaptureView.onLayout")
       /* init border if has no one */
       if (!captureWindow.hasBorder()) {
         borderCenterCrop()
@@ -291,7 +289,7 @@ class PixelCaptureView @JvmOverloads constructor(
     }
   }
 
-  fun setCaptureListener(listener: CaptureListener) {
+  fun setCaptureListener(listener: CaptureListener?) {
     this.listener = listener
   }
 
@@ -381,9 +379,7 @@ class PixelCaptureView @JvmOverloads constructor(
 
   private fun initRatioLayout(width: Int) {
     val params = layoutParams
-    val height =
-      ResolutionUtils.getRatioHeight(width, captureOptions.resolutionRatio)
-    params.height = height
+    params.height = captureOptions.resolutionRatio.getHeight(width.toFloat())
     layoutParams = params
   }
 
